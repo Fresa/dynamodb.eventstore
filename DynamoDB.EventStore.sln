@@ -5,6 +5,8 @@ VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamoDB.EventStore", "src\DynamoDB.EventStore\DynamoDB.EventStore.csproj", "{5A00F14B-C151-4A4E-8359-2E7965D0C57D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamoDB.EventStore.IntegrationTests", "tests\DynamoDB.EventStore.IntegrationTests\DynamoDB.EventStore.IntegrationTests.csproj", "{275EA9E8-2E0C-42B1-ACD0-102874530CD6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{5A00F14B-C151-4A4E-8359-2E7965D0C57D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A00F14B-C151-4A4E-8359-2E7965D0C57D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A00F14B-C151-4A4E-8359-2E7965D0C57D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{275EA9E8-2E0C-42B1-ACD0-102874530CD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{275EA9E8-2E0C-42B1-ACD0-102874530CD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{275EA9E8-2E0C-42B1-ACD0-102874530CD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{275EA9E8-2E0C-42B1-ACD0-102874530CD6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
