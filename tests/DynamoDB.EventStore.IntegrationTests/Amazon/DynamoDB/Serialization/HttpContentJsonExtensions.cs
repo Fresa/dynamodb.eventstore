@@ -15,23 +15,20 @@ internal static class HttpContentJsonExtensions
             new ReturnValueConverter()
         }
     });
-
-    internal static Task<T?> ReadDynamodDBRequestFromJsonAsync<T>(this HttpContent content,
-        CancellationToken cancellationToken) where T : AmazonDynamoDBRequest =>
-        content.ReadFromJsonAsync<T>(cancellationToken: cancellationToken,
-            options: JsonSerializerOptions);
-
+    
+    internal static Task<T?> ReadAmazonDynamoDbRequestFromJsonAsync<T>(this HttpContent? content,
+        CancellationToken cancellationToken)
+        where T : AmazonDynamoDBRequest =>
+        content == null
+            ? Task.FromResult<T?>(null)
+            : content.ReadFromJsonAsync<T>(cancellationToken: cancellationToken,
+                options: JsonSerializerOptions);
+    
     internal static Task<GetItemRequest?> ReadGetItemRequestFromJsonAsync(this HttpContent? content,
         CancellationToken cancellationToken) =>
-        content == null
-            ? Task.FromResult<GetItemRequest?>(null)
-            : content.ReadFromJsonAsync<GetItemRequest>(cancellationToken: cancellationToken,
-                options: JsonSerializerOptions);
+        content.ReadAmazonDynamoDbRequestFromJsonAsync<GetItemRequest>(cancellationToken);
 
     internal static Task<QueryRequest?> ReadQueryRequestFromJsonAsync(this HttpContent? content,
         CancellationToken cancellationToken) =>
-        content == null
-            ? Task.FromResult<QueryRequest?>(null)
-            : content.ReadFromJsonAsync<QueryRequest>(cancellationToken: cancellationToken,
-                options: JsonSerializerOptions);
+        content.ReadAmazonDynamoDbRequestFromJsonAsync<QueryRequest>(cancellationToken);
 }

@@ -13,9 +13,17 @@ internal abstract class ObservableHttpClientHandler
     protected virtual string MapRequestToHandlerId(HttpRequestMessage message) =>
         (message.RequestUri ?? throw new NullReferenceException("Request URI is null")).ToString();
 
-    internal void On(string handlerId, OnReceiveAsyncHandler handler)
+    internal Task<HttpRequestMessage> On(string handlerId, OnReceiveAsyncHandler handler)
     {
-        _subscriptions.AddOrUpdate(handlerId, _ => handler, (_, _) => handler);
+        var requestCompletionSource = new TaskCompletionSource<HttpRequestMessage>();
+        _subscriptions.AddOrUpdate(handlerId, _ => HandlerWrapper, (_, _) => HandlerWrapper);
+        return requestCompletionSource.Task;
+
+        Task<HttpResponseMessage> HandlerWrapper(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            requestCompletionSource.TrySetResult(request);
+            return handler(request, cancellationToken);
+        }
     }
 
     protected internal Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

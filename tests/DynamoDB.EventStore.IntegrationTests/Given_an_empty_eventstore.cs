@@ -1,7 +1,6 @@
 using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.Model;
 using DynamoDB.EventStore.IntegrationTests.Amazon;
-using DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB.Serialization;
+using DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB;
 using FluentAssertions;
 
 namespace DynamoDB.EventStore.IntegrationTests
@@ -13,40 +12,8 @@ namespace DynamoDB.EventStore.IntegrationTests
         {
             var amazonServices = new AmazonServices();
             amazonServices.StsService.RespondWithDefaultAssumeRoleWithWebIdentityResponse();
-            GetItemRequest? snapshotRequest = default;
-            amazonServices.DynamoDb.On(amazonServices.DynamoDb.GetItemKey, async (request, cancellation) =>
-            {
-                snapshotRequest = await request.Content.ReadGetItemRequestFromJsonAsync(cancellation)
-                    .ConfigureAwait(false);
-
-                return new HttpResponseMessage
-                {
-                    Content = new StringContent("""
-                {
-                    "Attributes": {
-                        
-                    }
-                }
-                """)
-                };
-            });
-
-            QueryRequest? queryRequest = default;
-            amazonServices.DynamoDb.On(amazonServices.DynamoDb.QueryKey, async (request, cancellation) =>
-            {
-                queryRequest = await request.Content.ReadQueryRequestFromJsonAsync(cancellation)
-                    .ConfigureAwait(false);
-                return new HttpResponseMessage
-                {
-                    Content = new StringContent("""
-                {
-                    "Attributes": {
-                        
-                    }
-                }
-                """)
-                };
-            });
+            var snapshotRequestSubscription = amazonServices.DynamoDb.OnGetItemRequest(DynamoDbService.ReturnEmptyGetItemResponse);
+            var querySubscription = amazonServices.DynamoDb.OnQueryRequest(DynamoDbService.ReturnEmptyQueryResponse);
 
             using var client = new AmazonDynamoDBClient(
                 new ConfigurableAssumeRoleWithWebIdentityCredentials(amazonServices.HttpClientFactory),
@@ -61,10 +28,12 @@ namespace DynamoDB.EventStore.IntegrationTests
             await eventStore.LoadAsync(aggregate)
                 .ConfigureAwait(false);
 
+            var snapshotRequest = await snapshotRequestSubscription.ConfigureAwait(false);
             snapshotRequest.Should().NotBeNull();
             snapshotRequest!.Key.Should().ContainKey("PK").WhoseValue.S.Should().Be("Test");
             snapshotRequest.Key.Should().ContainKey("SK").WhoseValue.S.Should().Be("S");
 
+            var queryRequest = await querySubscription.ConfigureAwait(false);
             queryRequest.Should().NotBeNull();
             queryRequest!.TableName.Should().Be(config.TableName);
             queryRequest.ConsistentRead.Should().Be(config.ConsistentRead);
