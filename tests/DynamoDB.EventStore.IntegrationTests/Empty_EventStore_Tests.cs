@@ -1,4 +1,3 @@
-using System.Net;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using DynamoDB.EventStore.IntegrationTests.Amazon;
@@ -7,7 +6,6 @@ using DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB.Serialization;
 using DynamoDB.EventStore.IntegrationTests.TestDomain;
 using DynamoDB.EventStore.IntegrationTests.TestDomain.Assertion;
 using DynamoDB.EventStore.IntegrationTests.TestDomain.Commands;
-using FluentAssertions;
 
 namespace DynamoDB.EventStore.IntegrationTests
 {
@@ -19,7 +17,7 @@ namespace DynamoDB.EventStore.IntegrationTests
             var amazonServices = new AmazonServices();
             amazonServices.StsService.RespondWithDefaultAssumeRoleWithWebIdentityResponse();
             var snapshotRequestSubscription = amazonServices.DynamoDb.OnGetItemRequest(DynamoDbService.ReturnEmptyGetItemResponse);
-            var querySubscription = amazonServices.DynamoDb.OnQueryRequest(DynamoDbService.ReturnEmptyQueryResponse);
+            var queryEventsRequestSubscription = amazonServices.DynamoDb.OnQueryRequest(DynamoDbService.ReturnEmptyQueryResponse);
 
             using var client = new AmazonDynamoDBClient(
                 new ConfigurableAssumeRoleWithWebIdentityCredentials(amazonServices.HttpClientFactory),
@@ -30,19 +28,17 @@ namespace DynamoDB.EventStore.IntegrationTests
             var config = new EventStoreConfig();
             var eventStore = new EventStore(client, config);
 
-            var aggregate = new TestDomain.TestAggregate("Test");
+            var aggregate = new TestAggregate("Test");
             await eventStore.LoadAsync(aggregate)
                 .ConfigureAwait(false);
 
             var snapshotRequest = await snapshotRequestSubscription.ConfigureAwait(false);
             snapshotRequest.Should().NotBeNull();
-            snapshotRequest!.Key.Should().ContainKey("PK").WhoseValue.S.Should().Be("Test");
-            snapshotRequest.Key.Should().ContainKey("SK").WhoseValue.S.Should().Be("S");
+            snapshotRequest!.AssertGetSnapshotItemRequest(aggregate, config);
 
-            var queryRequest = await querySubscription.ConfigureAwait(false);
-            queryRequest.Should().NotBeNull();
-            queryRequest!.TableName.Should().Be(config.TableName);
-            queryRequest.ConsistentRead.Should().Be(config.ConsistentRead);
+            var queryEventsRequest = await queryEventsRequestSubscription.ConfigureAwait(false);
+            queryEventsRequest.Should().NotBeNull();
+            queryEventsRequest!.AssertEventsQueried(aggregate, config);
             
             aggregate.Name.Should().BeNull();
         }
@@ -61,16 +57,7 @@ namespace DynamoDB.EventStore.IntegrationTests
                     .ConfigureAwait(false);
                 updateRequests.Add(updateItemRequest);
 
-                return new HttpResponseMessage(HttpStatusCode.OK)
-                {
-                    Content = new StringContent("""
-                {
-                    "Attributes": {
-                        
-                    }
-                }
-                """)
-                };
+                return DynamoDbService.CreateEmptyResponse();
             });
 
             using var client = amazonServices.CreateDynamoDbClient();
@@ -80,13 +67,12 @@ namespace DynamoDB.EventStore.IntegrationTests
             var aggregate = new TestAggregate("Test");
             await aggregate.ChangeNameAsync(new ChangeName("test"))
                 .ConfigureAwait(false);
-            
+
             var uncommittedEvents = aggregate.UncommittedEvents.Select(stream => stream.ToArray()).ToArray();
 
             await eventStore.SaveAsync(aggregate)
                 .ConfigureAwait(false);
-
-
+            
             updateRequests.Should().HaveCount(1);
             var eventsAdded = updateRequests.Single();
             eventsAdded.Should().NotBeNull();

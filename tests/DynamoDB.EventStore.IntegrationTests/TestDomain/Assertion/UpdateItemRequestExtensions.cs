@@ -1,5 +1,4 @@
 using Amazon.DynamoDBv2.Model;
-using FluentAssertions;
 
 namespace DynamoDB.EventStore.IntegrationTests.TestDomain.Assertion;
 

@@ -56,18 +56,13 @@ internal sealed class DynamoDbService : ObservableHttpClientHandler
         }
     }
 
-    internal static OnRequestAsyncHandler ReturnEmptyGetItemResponse = _ => Task.FromResult(new HttpResponseMessage
-    {
-        Content = new StringContent("""
-                {
-                    "Attributes": {
-                        
-                    }
-                }
-                """)
-    });
+    internal static OnRequestAsyncHandler ReturnEmptyGetItemResponse = _ => Task.FromResult(CreateEmptyResponse());
 
-    internal static OnRequestAsyncHandler ReturnEmptyQueryResponse = _ => Task.FromResult(new HttpResponseMessage
+    internal static OnRequestAsyncHandler ReturnEmptyQueryResponse => ReturnEmptyGetItemResponse;
+
+    internal static OnRequestAsyncHandler ReturnEmptyUpdateItemResponse => ReturnEmptyGetItemResponse;
+
+    internal static HttpResponseMessage CreateEmptyResponse() => new()
     {
         Content = new StringContent("""
                 {
@@ -76,5 +71,5 @@ internal sealed class DynamoDbService : ObservableHttpClientHandler
                     }
                 }
                 """)
-    });
+    };
 }
