@@ -29,6 +29,8 @@ internal sealed class TestAggregate : Aggregate
         Name = @event.Name;
     }
 
+    internal Task<MemoryStream> GetSnapShotAsync(CancellationToken cancellationToken) => CreateSnapShotAsync(cancellationToken);
+
     protected override async Task<MemoryStream> CreateSnapShotAsync(CancellationToken cancellationToken)
     {
         var dto = new TestSnapshotDto
