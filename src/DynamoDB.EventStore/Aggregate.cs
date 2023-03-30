@@ -22,7 +22,7 @@ public abstract class Aggregate
     protected abstract Task<MemoryStream> CreateSnapShotAsync(CancellationToken cancellationToken);
     internal Task<MemoryStream> CreateSnapShotInternalAsync(CancellationToken cancellationToken = default) => CreateSnapShotAsync(cancellationToken);
 
-    protected bool ShouldCreateSnapshot => BytesSinceLastSnapshot > ReadRequestUnit * 3;
+    protected virtual bool ShouldCreateSnapshot => BytesSinceLastSnapshot > ReadRequestUnit * 3;
     internal bool ShouldCreateSnapshotInternal => ShouldCreateSnapshot;
 
     protected virtual bool ShouldReadSnapshots => true;
