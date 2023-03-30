@@ -10,21 +10,24 @@ internal sealed class DynamoDbService : ObservableHttpClientHandler
     internal const string DnsLabel = "dynamodb";
 
     private const string Version = "20120810";
-    internal const string TargetPrefix = $"DynamoDB_{Version}";
-    internal readonly string UpdateItemKey = $"{TargetPrefix}.UpdateItem";
-    internal readonly string GetItemKey = $"{TargetPrefix}.GetItem";
-    internal readonly string QueryKey = $"{TargetPrefix}.Query";
+    private const string TargetPrefix = $"DynamoDB_{Version}";
+    private const string UpdateItemKey = $"{TargetPrefix}.UpdateItem";
+    private const string GetItemKey = $"{TargetPrefix}.GetItem";
+    private const string QueryKey = $"{TargetPrefix}.Query";
 
     protected override string MapRequestToHandlerId(HttpRequestMessage message) =>
         $"{message.Headers.GetValues("X-Amz-Target").First()}";
 
-    internal Task<GetItemRequest?> OnGetItemRequest(OnReceiveAsyncHandler handler) => 
+    internal Task<GetItemRequest?> OnGetItemRequest(OnRequestAsyncHandler handler) => 
         On<GetItemRequest>(GetItemKey, handler);
 
-    internal Task<QueryRequest?> OnQueryRequest(OnReceiveAsyncHandler handler) => 
+    internal Task<QueryRequest?> OnQueryRequest(OnRequestAsyncHandler handler) => 
         On<QueryRequest>(QueryKey, handler);
 
-    private Task<T?> On<T>(string key, OnReceiveAsyncHandler handler)
+    internal void OnUpdateItemRequest(OnReceiveAsyncHandler handler) =>
+        On(UpdateItemKey, handler);
+
+    private Task<T?> On<T>(string key, OnRequestAsyncHandler handler)
         where T : AmazonDynamoDBRequest
     {
         var requestCompletionSource = new TaskCompletionSource<T?>();
@@ -48,12 +51,12 @@ internal sealed class DynamoDbService : ObservableHttpClientHandler
                 requestCompletionSource.TrySetException(e);
             }
 
-            return await handler(request, cancellationToken)
+            return await handler(cancellationToken)
                 .ConfigureAwait(false);
         }
     }
 
-    internal static OnReceiveAsyncHandler ReturnEmptyGetItemResponse = (_, _) => Task.FromResult(new HttpResponseMessage
+    internal static OnRequestAsyncHandler ReturnEmptyGetItemResponse = _ => Task.FromResult(new HttpResponseMessage
     {
         Content = new StringContent("""
                 {
@@ -64,7 +67,7 @@ internal sealed class DynamoDbService : ObservableHttpClientHandler
                 """)
     });
 
-    internal static OnReceiveAsyncHandler ReturnEmptyQueryResponse = (_, _) => Task.FromResult(new HttpResponseMessage
+    internal static OnRequestAsyncHandler ReturnEmptyQueryResponse = _ => Task.FromResult(new HttpResponseMessage
     {
         Content = new StringContent("""
                 {

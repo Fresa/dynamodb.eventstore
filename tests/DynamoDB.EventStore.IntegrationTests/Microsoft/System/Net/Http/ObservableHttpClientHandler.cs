@@ -9,21 +9,30 @@ internal abstract class ObservableHttpClientHandler
 
     internal delegate Task<HttpResponseMessage> OnReceiveAsyncHandler(HttpRequestMessage request, CancellationToken
         cancellation);
-
+    internal delegate Task<HttpResponseMessage> OnRequestAsyncHandler(CancellationToken
+        cancellation);
+    
     protected virtual string MapRequestToHandlerId(HttpRequestMessage message) =>
         (message.RequestUri ?? throw new NullReferenceException("Request URI is null")).ToString();
 
-    internal Task<HttpRequestMessage> On(string handlerId, OnReceiveAsyncHandler handler)
+    internal Task<HttpRequestMessage> OnRequest(string handlerId, OnRequestAsyncHandler handler)
     {
         var requestCompletionSource = new TaskCompletionSource<HttpRequestMessage>();
-        _subscriptions.AddOrUpdate(handlerId, _ => HandlerWrapper, (_, _) => HandlerWrapper);
+        _subscriptions.AddOrUpdate(handlerId, _ => HandlerWrapper,
+            (_, _) => throw new InvalidOperationException($"{handlerId} has already been subscribed on"));
         return requestCompletionSource.Task;
 
         Task<HttpResponseMessage> HandlerWrapper(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             requestCompletionSource.TrySetResult(request);
-            return handler(request, cancellationToken);
+            return handler(cancellationToken);
         }
+    }
+
+    internal void On(string handlerId, OnReceiveAsyncHandler handler)
+    {
+        _subscriptions.AddOrUpdate(handlerId, _ => handler,
+            (_, _) => throw new InvalidOperationException($"{handlerId} has already been subscribed on"));
     }
 
     protected internal Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

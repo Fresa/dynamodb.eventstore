@@ -6,7 +6,7 @@ namespace DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB.Serialization;
 
 internal sealed class ReturnValueConverter : JsonConverter<ReturnValue>
 {
-    public override ReturnValue? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override ReturnValue Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         return new ReturnValue(reader.GetString());
     }
