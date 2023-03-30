@@ -3,7 +3,7 @@ using Amazon.DynamoDBv2.Model;
 
 namespace DynamoDB.EventStore;
 
-public sealed class EventStore 
+public sealed class EventStore
 {
     private readonly IAmazonDynamoDB _client;
     private readonly EventStoreConfig _config;
@@ -32,15 +32,15 @@ public sealed class EventStore
         if (aggregate.ShouldReadSnapshotsInternal)
         {
             var snapshotResponse = await _client.GetItemAsync(new GetItemRequest
+            {
+                TableName = _config.TableName,
+                ConsistentRead = _config.ConsistentRead,
+                Key = new Dictionary<string, AttributeValue>
                 {
-                    TableName = _config.TableName,
-                    ConsistentRead = _config.ConsistentRead,
-                    Key = new Dictionary<string, AttributeValue>
-                    {
-                        [TableKeys.PartitionKey] = new() { S = aggregate.IdInternal },
-                        [TableKeys.SortKey] = new() { S = SnapshotItemType }
-                    }
-                }, cancellationToken)
+                    [TableKeys.PartitionKey] = new() { S = aggregate.IdInternal },
+                    [TableKeys.SortKey] = new() { S = SnapshotItemType }
+                }
+            }, cancellationToken)
                 .ConfigureAwait(false);
 
             var hasSnapshot = snapshotResponse.IsItemSet;
@@ -62,16 +62,16 @@ public sealed class EventStore
         while (true)
         {
             var response = await _client.QueryAsync(new QueryRequest
+            {
+                TableName = _config.TableName,
+                ConsistentRead = _config.ConsistentRead,
+                KeyConditionExpression = $"{TableKeys.PartitionKey} = :{TableKeys.PartitionKey}",
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
                 {
-                    TableName = _config.TableName,
-                    ConsistentRead = _config.ConsistentRead,
-                    KeyConditionExpression = $"{TableKeys.PartitionKey} = :{TableKeys.PartitionKey}",
-                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>
-                    {
-                        [$":{TableKeys.PartitionKey}"] = new() { S = aggregate.IdInternal }
-                    },
-                    ExclusiveStartKey = exclusiveStartKey
-                }, cancellationToken)
+                    [$":{TableKeys.PartitionKey}"] = new() { S = aggregate.IdInternal }
+                },
+                ExclusiveStartKey = exclusiveStartKey
+            }, cancellationToken)
                 .ConfigureAwait(false);
 
             foreach (var payload in response.Items.Select(item => item[TableKeys.Payload]))
@@ -100,55 +100,62 @@ public sealed class EventStore
         aggregate.VersionInternal++;
 
         await _client.UpdateItemAsync(new UpdateItemRequest
+        {
+            TableName = _config.TableName,
+            Key = new Dictionary<string, AttributeValue>
             {
-                TableName = _config.TableName,
-                Key = new Dictionary<string, AttributeValue>
+                [TableKeys.PartitionKey] = new() { S = aggregate.IdInternal },
+                [TableKeys.SortKey] = new() { S = $"{aggregate.VersionInternal}" }
+            },
+            ConditionExpression = commitConditionExpression,
+            UpdateExpression = $"set {TableKeys.Payload} = :{TableKeys.Payload}",
+            ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+            {
+                [$":{TableKeys.Payload}"] = new()
                 {
-                    [TableKeys.PartitionKey] = new() { S = aggregate.IdInternal },
-                    [TableKeys.SortKey] = new() { S = $"{aggregate.VersionInternal}" }
-                },
-                ConditionExpression = commitConditionExpression,
-                UpdateExpression = $"set {TableKeys.Payload} = :{TableKeys.Payload}",
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
-                {
-                    [$":{TableKeys.Payload}"] = new()
-                    {
-                        BS = aggregate.UncommittedEventsInternal
-                    }
+                    BS = aggregate.UncommittedEventsInternal
                 }
-            }, cancellationToken)
+            }
+        }, cancellationToken)
+            .ConfigureAwait(false);
+        
+        await Task.WhenAll(
+                aggregate.UncommittedEventsInternal
+                    .Select(stream => stream.DisposeAsync())
+                    .Select(task => task.IsCompletedSuccessfully ? Task.CompletedTask : task.AsTask()))
             .ConfigureAwait(false);
         aggregate.UncommittedEventsInternal.Clear();
 
         if (aggregate.ShouldCreateSnapshotInternal)
         {
+            using var snapshot = await aggregate.CreateSnapShotInternalAsync(cancellationToken)
+                .ConfigureAwait(false);
             await _client.UpdateItemAsync(new UpdateItemRequest
+            {
+                TableName = _config.TableName,
+                Key = new Dictionary<string, AttributeValue>
                 {
-                    TableName = _config.TableName,
-                    Key = new Dictionary<string, AttributeValue>
-                    {
-                        [TableKeys.PartitionKey] = new() { S = aggregate.IdInternal },
-                        [TableKeys.SortKey] = new() { S = SnapshotItemType }
-                    },
-                    ConditionExpression = $"{TableKeys.Version} < :{TableKeys.Version}",
-                    UpdateExpression = $"""
+                    [TableKeys.PartitionKey] = new() { S = aggregate.IdInternal },
+                    [TableKeys.SortKey] = new() { S = SnapshotItemType }
+                },
+                ConditionExpression = $"{TableKeys.Version} < :{TableKeys.Version}",
+                UpdateExpression = $"""
                         set 
                             {TableKeys.Payload} = :{TableKeys.Payload},
                             {TableKeys.Version} = :{TableKeys.Version}
                     """,
-                    ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue>
+                {
+                    [$":{TableKeys.Payload}"] = new()
                     {
-                        [$":{TableKeys.Payload}"] = new()
-                        {
-                            B = await aggregate.CreateSnapShotInternalAsync(cancellationToken)
-                                .ConfigureAwait(false),
-                        },
-                        [$":{TableKeys.Version}"] = new()
-                        {
-                            N = $"{aggregate.VersionInternal}"
-                        }
+                        B = snapshot,
+                    },
+                    [$":{TableKeys.Version}"] = new()
+                    {
+                        N = $"{aggregate.VersionInternal}"
                     }
-                }, cancellationToken)
+                }
+            }, cancellationToken)
                 .ConfigureAwait(false);
         }
     }
