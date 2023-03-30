@@ -4,6 +4,8 @@ using Amazon.DynamoDBv2.Model;
 using DynamoDB.EventStore.IntegrationTests.Amazon;
 using DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB;
 using DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB.Serialization;
+using DynamoDB.EventStore.IntegrationTests.TestDomain;
+using DynamoDB.EventStore.IntegrationTests.TestDomain.Assertion;
 using DynamoDB.EventStore.IntegrationTests.TestDomain.Commands;
 using FluentAssertions;
 
@@ -70,33 +72,25 @@ namespace DynamoDB.EventStore.IntegrationTests
                 """)
                 };
             });
-            
-            using var client = new AmazonDynamoDBClient(
-                new ConfigurableAssumeRoleWithWebIdentityCredentials(amazonServices.HttpClientFactory),
-                new AmazonDynamoDBConfig
-                {
-                    HttpClientFactory = amazonServices.HttpClientFactory
-                });
+
+            using var client = amazonServices.CreateDynamoDbClient();
             var config = new EventStoreConfig();
             var eventStore = new EventStore(client, config);
             
-            var aggregate = new TestDomain.TestAggregate("Test");
+            var aggregate = new TestAggregate("Test");
             await aggregate.ChangeNameAsync(new ChangeName("test"))
                 .ConfigureAwait(false);
+            
+            var uncommittedEvents = aggregate.UncommittedEvents.Select(stream => stream.ToArray()).ToArray();
+
             await eventStore.SaveAsync(aggregate)
                 .ConfigureAwait(false);
-            
-            //var snapshotRequest = await snapshotRequestSubscription.ConfigureAwait(false);
-            //snapshotRequest.Should().NotBeNull();
-            //snapshotRequest!.Key.Should().ContainKey("PK").WhoseValue.S.Should().Be("Test");
-            //snapshotRequest.Key.Should().ContainKey("SK").WhoseValue.S.Should().Be("S");
 
-            //var queryRequest = await querySubscription.ConfigureAwait(false);
-            //queryRequest.Should().NotBeNull();
-            //queryRequest!.TableName.Should().Be(config.TableName);
-            //queryRequest.ConsistentRead.Should().Be(config.ConsistentRead);
 
-            //aggregate.Name.Should().BeNull();
+            updateRequests.Should().HaveCount(1);
+            var eventsAdded = updateRequests.Single();
+            eventsAdded.Should().NotBeNull();
+            eventsAdded!.AssertEventsAdded(aggregate, config, uncommittedEvents);
         }
     }
 }

@@ -26,14 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\DynamoDB.EventStore\DynamoDB.EventStore.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Amazon\DynamoDB\Serialization\" />
-    <Folder Include="Microsoft\System\Net\Http\" />
-    <Folder Include="TestDomain\Events\" />
-    <Folder Include="TestDomain\Commands\" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <None Update="example_aws_identity.token">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

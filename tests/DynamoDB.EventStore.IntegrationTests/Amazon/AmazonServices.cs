@@ -1,3 +1,4 @@
+using Amazon.DynamoDBv2;
 using DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB;
 using DynamoDB.EventStore.IntegrationTests.Amazon.STS;
 
@@ -14,6 +15,13 @@ internal sealed class AmazonServices : HttpClientHandler
     }
 
     internal AmazonHttpClientFactory HttpClientFactory { get; } 
+    internal AmazonDynamoDBClient CreateDynamoDbClient() => new(
+        new ConfigurableAssumeRoleWithWebIdentityCredentials(HttpClientFactory),
+        new AmazonDynamoDBConfig
+        {
+            HttpClientFactory = HttpClientFactory
+        });
+
     internal DynamoDbService DynamoDb { get; } = new();
     internal StsService StsService { get; } = new();
 

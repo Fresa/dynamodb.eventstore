@@ -6,12 +6,17 @@ namespace DynamoDB.EventStore.IntegrationTests.TestDomain;
 
 internal sealed class TestAggregate : Aggregate
 {
-    public TestAggregate(string id) : base(id)
+    public TestAggregate(string id, bool shouldCreateSnapshot = false) : base(id)
     {
+        ShouldCreateSnapshot = shouldCreateSnapshot;
     }
 
+    protected override bool ShouldCreateSnapshot { get; }
+    public new string Id => base.Id;
+    public new int Version => base.Version;
+    public new List<MemoryStream> UncommittedEvents => base.UncommittedEvents;
     public string? Name { get; set; }
-
+    
     public async Task ChangeNameAsync(ChangeName command, CancellationToken cancellationToken = default)
     {
         var @event = new NameChanged(command.Name);
