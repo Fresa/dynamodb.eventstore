@@ -1,7 +1,11 @@
+using System.Buffers.Text;
+using System.Text;
+using System.Text.Json;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB.Serialization;
 using DynamoDB.EventStore.IntegrationTests.Microsoft.System.Net.Http;
+using DynamoDB.EventStore.IntegrationTests.TestDomain.Events;
 
 namespace DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB;
 
@@ -18,10 +22,10 @@ internal sealed class DynamoDbService : ObservableHttpClientHandler
     protected override string MapRequestToHandlerId(HttpRequestMessage message) =>
         $"{message.Headers.GetValues("X-Amz-Target").First()}";
 
-    internal Task<GetItemRequest?> OnGetItemRequest(OnRequestAsyncHandler handler) => 
+    internal Task<GetItemRequest?> OnGetItemRequest(OnRequestAsyncHandler handler) =>
         On<GetItemRequest>(GetItemKey, handler);
 
-    internal Task<QueryRequest?> OnQueryRequest(OnRequestAsyncHandler handler) => 
+    internal Task<QueryRequest?> OnQueryRequest(OnRequestAsyncHandler handler) =>
         On<QueryRequest>(QueryKey, handler);
 
     internal void OnUpdateItemRequest(OnReceiveAsyncHandler handler) =>
@@ -55,6 +59,24 @@ internal sealed class DynamoDbService : ObservableHttpClientHandler
                 .ConfigureAwait(false);
         }
     }
+
+    internal static OnRequestAsyncHandler ReturnEvents(string aggregateId, params IEvent[][] commits) => _ =>
+        Task.FromResult(new HttpResponseMessage
+        {
+            Content = new StringContent($$"""
+                {
+                    "Items": [
+                        {{string.Join(", ", commits.Select((commit, idx) => $$"""
+                        {
+                            "PK": { "S": "{{aggregateId}}" },
+                            "SK": { "S": "{{idx + 1}}" },
+                            "P": { "BS": [{{string.Join(", ", commit.Select(@event => $"\"{Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(@event)) }\""))}}] }
+                        }
+                        """))}}
+                    ]
+                }
+                """)
+        });
 
     internal static OnRequestAsyncHandler ReturnEmptyGetItemResponse = _ => Task.FromResult(CreateEmptyResponse());
 
