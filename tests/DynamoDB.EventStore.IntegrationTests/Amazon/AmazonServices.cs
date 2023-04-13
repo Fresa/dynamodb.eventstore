@@ -9,8 +9,8 @@ namespace DynamoDB.EventStore.IntegrationTests.Amazon;
 internal sealed class AmazonServices : HttpClientHandler
 {
     private readonly string? _listenerName;
-    internal const string Hostname = "amazonaws.com";
-    internal const string Region = "us-east-1";
+    private const string Hostname = "amazonaws.com";
+    private const string Region = "us-east-1";
 
     static AmazonServices()
     {
@@ -29,12 +29,14 @@ internal sealed class AmazonServices : HttpClientHandler
         HttpClientFactory = new AmazonHttpClientFactory(this);
     }
 
-    internal AmazonHttpClientFactory HttpClientFactory { get; }
+    private AmazonHttpClientFactory HttpClientFactory { get; }
     internal AmazonDynamoDBClient CreateDynamoDbClient() => new(
         new ConfigurableAssumeRoleWithWebIdentityCredentials(HttpClientFactory),
         new AmazonDynamoDBConfig
         {
             HttpClientFactory = HttpClientFactory,
+            MaxErrorRetry = 0,
+            RegionEndpoint = RegionEndpoint.GetBySystemName(Region)
         });
 
     internal DynamoDbService DynamoDb { get; } = new();

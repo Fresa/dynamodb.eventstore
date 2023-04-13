@@ -1,5 +1,5 @@
-using System.Buffers.Text;
-using System.Text;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
@@ -61,24 +61,52 @@ internal sealed class DynamoDbService : ObservableHttpClientHandler
     }
 
     internal static OnRequestAsyncHandler ReturnEvents(string aggregateId, params IEvent[][] commits) => _ =>
-        Task.FromResult(new HttpResponseMessage
-        {
-            Content = new StringContent($$"""
+    {
+        var content = $$"""
                 {
+                    "Count": {{commits.Length}},
                     "Items": [
-                        {{string.Join(", ", commits.Select((commit, idx) => $$"""
+                        {{string.Join(",", commits.Select((commit, idx) => $$"""
                         {
                             "PK": { "S": "{{aggregateId}}" },
                             "SK": { "S": "{{idx + 1}}" },
-                            "P": { "BS": [{{string.Join(", ", commit.Select(@event => $"\"{Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(@event)) }\""))}}] }
+                            "P": { "BS": [{{string.Join(", ", commit.Select(@event => $"\"{Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(@event))}\""))}}] }
                         }
                         """))}}
                     ]
                 }
-                """)
+                """;
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(content)
+            {
+                Headers = { ContentType = new MediaTypeHeaderValue("application/x-amz-json-1.0") }
+            }
         });
+    };
 
-    internal static OnRequestAsyncHandler ReturnEmptyGetItemResponse = _ => Task.FromResult(CreateEmptyResponse());
+    internal static OnRequestAsyncHandler ReturnSnapshot<T>(string aggregateId, int version, T snapshot) => _ =>
+    {
+        var content = $$"""
+                {
+                    "Item": {
+                        "PK": { "S": "{{aggregateId}}" },
+                        "SK": { "S": "S" },
+                        "P": { "B": "{{Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(snapshot))}}" },
+                        "V": { "N": "{{version}}" }
+                    }
+                }
+                """;
+        return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(content)
+            {
+                Headers = { ContentType = new MediaTypeHeaderValue("application/x-amz-json-1.0") }
+            }
+        });
+    };
+
+    internal static readonly OnRequestAsyncHandler ReturnEmptyGetItemResponse = _ => Task.FromResult(CreateEmptyResponse());
 
     internal static OnRequestAsyncHandler ReturnEmptyQueryResponse => ReturnEmptyGetItemResponse;
 

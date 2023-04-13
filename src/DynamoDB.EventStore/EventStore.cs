@@ -51,7 +51,7 @@ public sealed class EventStore
                 await aggregate.LoadSnapshotInternalAsync(snapshot, cancellationToken)
                     .ConfigureAwait(false);
 
-                var version = snapshotResponse.Item[TableKeys.Version].S;
+                var version = snapshotResponse.Item[TableKeys.Version].N;
                 aggregate.VersionInternal = int.Parse(version);
 
                 exclusiveStartKey[TableKeys.PartitionKey] = new AttributeValue { S = aggregate.IdInternal };
@@ -78,6 +78,7 @@ public sealed class EventStore
             {
                 await aggregate.LoadEventsInternalAsync(payload.BS, cancellationToken)
                     .ConfigureAwait(false);
+                aggregate.VersionInternal++;
                 aggregate.BytesSinceLastSnapshotInternal += payload.BS.Aggregate((long)0, (length, stream) => length + stream.Length);
             }
 

@@ -15,8 +15,8 @@ internal sealed class TestAggregate : Aggregate
     public new string Id => base.Id;
     public new int Version => base.Version;
     public new List<MemoryStream> UncommittedEvents => base.UncommittedEvents;
-    public string? Name { get; set; }
-    
+    public string? Name { get; private set; }
+
     public async Task ChangeNameAsync(ChangeName command, CancellationToken cancellationToken = default)
     {
         var @event = new NameChanged(command.Name);
@@ -97,8 +97,8 @@ internal sealed class TestAggregate : Aggregate
         return result;
     }
 
-    private class TestSnapshotDto
+    internal record TestSnapshotDto
     {
-        public string? Name { get; set; }
+        public string? Name { get; init; }
     }
 }

@@ -3,7 +3,7 @@ using Xunit.Abstractions;
 
 namespace DynamoDB.EventStore.IntegrationTests;
 
-public abstract class EventStoreTestSpecification : IAsyncLifetime
+public abstract class TestSpecification : IAsyncLifetime
 {
     private readonly ITestOutputHelper? _testOutputHelper;
     protected CancellationToken TimeoutToken => _timeoutSource.Token;
@@ -11,7 +11,7 @@ public abstract class EventStoreTestSpecification : IAsyncLifetime
 
     private CancellationTokenSource _timeoutSource = default!;
     
-    protected EventStoreTestSpecification(ITestOutputHelper? testOutputHelper = default)
+    protected TestSpecification(ITestOutputHelper? testOutputHelper = default)
     {
         _testOutputHelper = testOutputHelper;
     }
