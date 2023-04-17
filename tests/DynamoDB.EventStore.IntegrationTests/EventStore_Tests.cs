@@ -29,12 +29,10 @@ public class EventStore_Tests : TestSpecification
             .ConfigureAwait(false);
 
         var snapshotRequest = await snapshotRequestSubscription.ConfigureAwait(false);
-        snapshotRequest.Should().NotBeNull();
-        snapshotRequest!.AssertGetSnapshotItemRequest(aggregate, config);
+        snapshotRequest.AssertGetSnapshotItemRequest(aggregate, config);
 
         var queryEventsRequest = await queryEventsRequestSubscription.ConfigureAwait(false);
-        queryEventsRequest.Should().NotBeNull();
-        queryEventsRequest!.AssertEventsQueried(aggregate, config);
+        queryEventsRequest.AssertEventsQueried(aggregate, config);
 
         aggregate.Name.Should().BeNull();
     }
@@ -70,12 +68,10 @@ public class EventStore_Tests : TestSpecification
 
         updateRequests.Should().HaveCount(2);
         var eventsAdded = updateRequests.First();
-        eventsAdded.Should().NotBeNull();
-        eventsAdded!.AssertEventsAdded(aggregate, config, uncommittedEvents);
+        eventsAdded.AssertEventsAdded(aggregate, config, uncommittedEvents);
 
         var updateSnapshotRequest = updateRequests[1];
-        updateSnapshotRequest.Should().NotBeNull();
-        await updateSnapshotRequest!.AssertSnapshotUpdatedAsync(aggregate, config)
+        await updateSnapshotRequest.AssertSnapshotUpdatedAsync(aggregate, config)
             .ConfigureAwait(false);
     }
 
@@ -104,12 +100,10 @@ public class EventStore_Tests : TestSpecification
             .ConfigureAwait(false);
 
         var snapshotRequest = await snapshotRequestSubscription.ConfigureAwait(false);
-        snapshotRequest.Should().NotBeNull();
-        snapshotRequest!.AssertGetSnapshotItemRequest(aggregate, config);
+        snapshotRequest.AssertGetSnapshotItemRequest(aggregate, config);
 
         var queryEventsRequest = await queryEventsRequestSubscription.ConfigureAwait(false);
-        queryEventsRequest.Should().NotBeNull();
-        queryEventsRequest!.AssertEventsQueried(aggregate, config, version);
+        queryEventsRequest.AssertEventsQueried(aggregate, config, version);
 
         aggregate.Name.Should().Be("Name2");
     }

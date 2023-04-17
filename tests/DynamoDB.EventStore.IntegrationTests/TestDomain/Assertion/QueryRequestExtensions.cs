@@ -4,9 +4,10 @@ namespace DynamoDB.EventStore.IntegrationTests.TestDomain.Assertion;
 
 internal static class QueryRequestExtensions
 {
-    internal static void AssertEventsQueried(this QueryRequest request, TestAggregate aggregate, EventStoreConfig config, int? version = null)
+    internal static void AssertEventsQueried(this QueryRequest? request, TestAggregate aggregate, EventStoreConfig config, int? version = null)
     {
-        request.TableName.Should().Be(config.TableName);
+        request.Should().NotBeNull();
+        request!.TableName.Should().Be(config.TableName);
         request.ConsistentRead.Should().Be(config.ConsistentRead);
         request.KeyConditionExpression.Should().Be("PK = :PK");
         request.ExpressionAttributeValues.Should().HaveCount(1);

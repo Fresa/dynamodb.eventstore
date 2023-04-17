@@ -4,9 +4,10 @@ namespace DynamoDB.EventStore.IntegrationTests.TestDomain.Assertion;
 
 internal static class UpdateItemRequestExtensions
 {
-    internal static void AssertEventsAdded(this UpdateItemRequest request, TestAggregate aggregate, EventStoreConfig config, byte[][] committedEvents)
+    internal static void AssertEventsAdded(this UpdateItemRequest? request, TestAggregate aggregate, EventStoreConfig config, byte[][] committedEvents)
     {
-        request.TableName.Should().Be(config.TableName);
+        request.Should().NotBeNull();
+        request!.TableName.Should().Be(config.TableName);
         request.Key.Should().ContainKey("PK").WhoseValue.S.Should().Be(aggregate.Id);
         request.Key.Should().ContainKey("SK").WhoseValue.S.Should().Be(aggregate.Version.ToString());
         request.ConditionExpression.Should().Be("attribute_not_exists(PK)");
@@ -21,13 +22,14 @@ internal static class UpdateItemRequestExtensions
         }
     }
 
-    internal static async Task AssertSnapshotUpdatedAsync(this UpdateItemRequest request, TestAggregate aggregate,
+    internal static async Task AssertSnapshotUpdatedAsync(this UpdateItemRequest? request, TestAggregate aggregate,
         EventStoreConfig config, CancellationToken cancellationToken = default)
     {
-        request.TableName.Should().Be(config.TableName);
+        request.Should().NotBeNull();
+        request!.TableName.Should().Be(config.TableName);
         request.Key.Should().ContainKey("PK").WhoseValue.S.Should().Be(aggregate.Id);
         request.Key.Should().ContainKey("SK").WhoseValue.S.Should().Be("S");
-        request.ConditionExpression.Should().Be("V < :V");
+        request.ConditionExpression.Should().Be("attribute_not_exists(V) OR V < :V");
         request.UpdateExpression.Should().Be("""
                 set 
                     P = :P,

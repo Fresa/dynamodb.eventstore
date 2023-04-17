@@ -139,7 +139,7 @@ public sealed class EventStore
                     [TableKeys.PartitionKey] = new() { S = aggregate.IdInternal },
                     [TableKeys.SortKey] = new() { S = SnapshotItemType }
                 },
-                ConditionExpression = $"{TableKeys.Version} < :{TableKeys.Version}",
+                ConditionExpression = $"attribute_not_exists({TableKeys.Version}) OR {TableKeys.Version} < :{TableKeys.Version}",
                 UpdateExpression = $"""
                         set 
                             {TableKeys.Payload} = :{TableKeys.Payload},
