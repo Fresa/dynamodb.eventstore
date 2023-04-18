@@ -33,7 +33,7 @@ internal sealed class TestContainerBuilder : ContainerBuilder<TestContainerBuild
     {
         Validate();
         return new DockerContainer(DockerResourceConfiguration,
-            XUnitLogger<DockerContainer>.CreateLogger(_testOutputHelper));
+            XUnitLogger.CreateLogger<DockerContainer>(_testOutputHelper));
     }
 
     protected override TestContainerBuilder Clone(IResourceConfiguration<CreateContainerParameters> resourceConfiguration) => 

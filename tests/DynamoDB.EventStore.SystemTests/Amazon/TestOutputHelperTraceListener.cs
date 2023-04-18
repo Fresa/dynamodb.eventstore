@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using DynamoDB.EventStore.SystemTests.Telemetry;
+using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
 namespace DynamoDB.EventStore.SystemTests.Amazon;
@@ -179,11 +181,12 @@ internal sealed class TestOutputHelperTraceListener : TraceListener
         if (CurrentExecutionIdentifier.Value != _name)
             return;
 
-        _testOutputHelper.WriteLine($"[{Enum.GetName(level)}] {source} | {messageTemplate}", args);
-        if (exception != null)
-        {
-            _testOutputHelper.WriteLine(exception.ToString());
-        }
+        XUnitLogger.CreateLogger(_testOutputHelper, source ?? "")
+            .Log(
+                MapToLogLevel(level),
+                exception: exception,
+                message: messageTemplate,
+                args: args);
     }
 
     private bool ShouldTrace(
@@ -199,4 +202,20 @@ internal sealed class TestOutputHelperTraceListener : TraceListener
         var filter = Filter;
         return filter == null || filter.ShouldTrace(cache, source, eventType, id, formatOrMessage, args, data1, data);
     }
+
+    private static LogLevel MapToLogLevel(TraceEventType type) =>
+        type switch
+        {
+            TraceEventType.Critical => LogLevel.Critical,
+            TraceEventType.Error => LogLevel.Error,
+            TraceEventType.Warning => LogLevel.Warning,
+            TraceEventType.Information => LogLevel.Information,
+            TraceEventType.Verbose => LogLevel.Debug,
+            TraceEventType.Start => LogLevel.Trace,
+            TraceEventType.Stop => LogLevel.Trace,
+            TraceEventType.Suspend => LogLevel.Trace,
+            TraceEventType.Resume => LogLevel.Trace,
+            TraceEventType.Transfer => LogLevel.Trace,
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+        };
 }

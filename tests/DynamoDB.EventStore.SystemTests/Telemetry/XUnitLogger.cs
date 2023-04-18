@@ -4,16 +4,20 @@ using Xunit.Abstractions;
 
 namespace DynamoDB.EventStore.SystemTests.Telemetry;
 
-internal sealed class XUnitLogger<T> : ILogger<T>
+internal sealed class XUnitLogger : ILogger
 {
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly string _categoryName;
     private readonly LoggerExternalScopeProvider _scopeProvider;
 
-    public static ILogger<T> CreateLogger(ITestOutputHelper testOutputHelper) => new XUnitLogger<T>(
+    public static ILogger CreateLogger<T>(ITestOutputHelper testOutputHelper) =>
+        CreateLogger(testOutputHelper,
+            typeof(T).FullName ?? throw new InvalidOperationException($"{typeof(T)} doesn't have a fullname"));
+
+    public static ILogger CreateLogger(ITestOutputHelper testOutputHelper, string categoryName) => new XUnitLogger(
         testOutputHelper,
         new LoggerExternalScopeProvider(),
-        typeof(T).FullName ?? throw new InvalidOperationException($"{typeof(T)} doesn't have a fullname"));
+        categoryName);
 
     private XUnitLogger(ITestOutputHelper testOutputHelper, LoggerExternalScopeProvider scopeProvider, string categoryName)
     {
@@ -29,9 +33,7 @@ internal sealed class XUnitLogger<T> : ILogger<T>
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
     {
         var sb = new StringBuilder();
-        sb
-            .Append($"[{DateTime.Now} {GetLogLevelString(logLevel)} {_categoryName}] ")
-            .Append(formatter(state, exception));
+        sb.Append($"[{DateTime.Now:HH:mm:ss.fff} {GetLogLevelString(logLevel)}] {_categoryName} | {formatter(state, exception)}");
 
         if (exception != null)
         {
