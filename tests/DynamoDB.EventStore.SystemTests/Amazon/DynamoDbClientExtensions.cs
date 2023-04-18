@@ -2,7 +2,6 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using DynamoDB.EventStore.SystemTests.TestDomain;
 using FluentAssertions;
-using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace DynamoDB.EventStore.SystemTests.Amazon;
 

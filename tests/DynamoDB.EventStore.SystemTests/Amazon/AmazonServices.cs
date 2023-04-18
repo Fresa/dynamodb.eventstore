@@ -26,12 +26,13 @@ internal sealed class AmazonServices : IDisposable
         AWSConfigs.AddTraceListener(TraceSource, _listener);
     }
 
-    internal AmazonDynamoDBClient CreateDynamoDbClient() => new(
-        "test", "test",
-        new AmazonDynamoDBConfig
-        {
-            ServiceURL = _serviceUrl
-        });
+    internal AmazonDynamoDBClient CreateDynamoDbClient() =>
+        new(
+            "test", "test",
+            new AmazonDynamoDBConfig
+            {
+                ServiceURL = _serviceUrl
+            });
 
     public void Dispose()
     {
