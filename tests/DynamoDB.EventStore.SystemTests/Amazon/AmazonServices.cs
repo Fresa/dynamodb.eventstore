@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Amazon;
 using Amazon.DynamoDBv2;
+using DynamoDB.EventStore.Tests.Common.Amazon;
 using Xunit.Abstractions;
 
 namespace DynamoDB.EventStore.SystemTests.Amazon;

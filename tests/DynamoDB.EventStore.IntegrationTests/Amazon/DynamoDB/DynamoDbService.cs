@@ -5,7 +5,7 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB.Serialization;
 using DynamoDB.EventStore.IntegrationTests.Microsoft.System.Net.Http;
-using DynamoDB.EventStore.IntegrationTests.TestDomain.Events;
+using DynamoDB.EventStore.Tests.Common.TestDomain.Events;
 
 namespace DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB;
 

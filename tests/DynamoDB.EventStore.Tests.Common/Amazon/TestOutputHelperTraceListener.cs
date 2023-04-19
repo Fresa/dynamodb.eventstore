@@ -1,11 +1,11 @@
 using System.Diagnostics;
-using DynamoDB.EventStore.SystemTests.Telemetry;
+using DynamoDB.EventStore.Tests.Common.Telemetry;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
-namespace DynamoDB.EventStore.SystemTests.Amazon;
+namespace DynamoDB.EventStore.Tests.Common.Amazon;
 
-internal sealed class TestOutputHelperTraceListener : TraceListener
+public sealed class TestOutputHelperTraceListener : TraceListener
 {
     private readonly ITestOutputHelper _testOutputHelper;
 

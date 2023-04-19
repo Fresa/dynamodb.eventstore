@@ -1,10 +1,10 @@
 using Amazon.DynamoDBv2.Model;
 using DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB;
 using DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB.Serialization;
-using DynamoDB.EventStore.IntegrationTests.TestDomain;
-using DynamoDB.EventStore.IntegrationTests.TestDomain.Assertion;
-using DynamoDB.EventStore.IntegrationTests.TestDomain.Commands;
-using DynamoDB.EventStore.IntegrationTests.TestDomain.Events;
+using DynamoDB.EventStore.IntegrationTests.Assertion;
+using DynamoDB.EventStore.Tests.Common.TestDomain;
+using DynamoDB.EventStore.Tests.Common.TestDomain.Commands;
+using DynamoDB.EventStore.Tests.Common.TestDomain.Events;
 using Xunit.Abstractions;
 
 namespace DynamoDB.EventStore.IntegrationTests;

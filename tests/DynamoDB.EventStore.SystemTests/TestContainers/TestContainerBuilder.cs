@@ -1,8 +1,9 @@
+using System.Runtime.CompilerServices;
 using Docker.DotNet.Models;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
-using DynamoDB.EventStore.SystemTests.Telemetry;
+using DynamoDB.EventStore.Tests.Common.Telemetry;
 using Xunit.Abstractions;
 
 namespace DynamoDB.EventStore.SystemTests.TestContainers;

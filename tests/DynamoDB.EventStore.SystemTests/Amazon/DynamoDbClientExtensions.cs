@@ -1,6 +1,6 @@
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
-using DynamoDB.EventStore.SystemTests.TestDomain;
+using DynamoDB.EventStore.Tests.Common.TestDomain;
 using FluentAssertions;
 
 namespace DynamoDB.EventStore.SystemTests.Amazon;

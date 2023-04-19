@@ -1,17 +1,18 @@
 using System.Text.Json;
-using DynamoDB.EventStore.IntegrationTests.TestDomain.Commands;
-using DynamoDB.EventStore.IntegrationTests.TestDomain.Events;
+using DynamoDB.EventStore.Tests.Common.TestDomain.Commands;
+using DynamoDB.EventStore.Tests.Common.TestDomain.Events;
 
-namespace DynamoDB.EventStore.IntegrationTests.TestDomain;
+namespace DynamoDB.EventStore.Tests.Common.TestDomain;
 
-internal sealed class TestAggregate : Aggregate
+public sealed class TestAggregate : Aggregate
 {
     public TestAggregate(string id, bool shouldCreateSnapshot = false) : base(id)
     {
-        ShouldCreateSnapshot = shouldCreateSnapshot;
+        CreateSnapshot = shouldCreateSnapshot;
     }
 
-    protected override bool ShouldCreateSnapshot { get; }
+    public bool CreateSnapshot { get; set; }
+    protected override bool ShouldCreateSnapshot => CreateSnapshot;
     public new string Id => base.Id;
     public new int Version => base.Version;
     public new List<MemoryStream> UncommittedEvents => base.UncommittedEvents;
@@ -23,13 +24,13 @@ internal sealed class TestAggregate : Aggregate
         await ApplyAsync(@event, cancellationToken)
             .ConfigureAwait(false);
     }
-
+    
     private void On(NameChanged @event)
     {
         Name = @event.Name;
     }
 
-    internal Task<MemoryStream> GetSnapShotAsync(CancellationToken cancellationToken) => CreateSnapShotAsync(cancellationToken);
+    public Task<MemoryStream> GetSnapShotAsync(CancellationToken cancellationToken) => CreateSnapShotAsync(cancellationToken);
 
     protected override async Task<MemoryStream> CreateSnapShotAsync(CancellationToken cancellationToken)
     {
@@ -75,7 +76,7 @@ internal sealed class TestAggregate : Aggregate
         where T : IEvent
     {
         Route(@event);
-        var stream = await WriteAsync(@event, cancellationToken)
+        var stream = await WriteAsync<IEvent>(@event, cancellationToken)
             .ConfigureAwait(false);
         UncommittedEvents.Add(stream);
     }
@@ -97,7 +98,7 @@ internal sealed class TestAggregate : Aggregate
         return result;
     }
 
-    internal record TestSnapshotDto
+    public record TestSnapshotDto
     {
         public string? Name { get; init; }
     }

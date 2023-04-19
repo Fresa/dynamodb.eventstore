@@ -1,6 +1,7 @@
 using Amazon.DynamoDBv2.Model;
+using DynamoDB.EventStore.Tests.Common.TestDomain;
 
-namespace DynamoDB.EventStore.IntegrationTests.TestDomain.Assertion;
+namespace DynamoDB.EventStore.IntegrationTests.Assertion;
 
 internal static class QueryRequestExtensions
 {

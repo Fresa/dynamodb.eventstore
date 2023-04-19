@@ -2,9 +2,9 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
-namespace DynamoDB.EventStore.SystemTests.Telemetry;
+namespace DynamoDB.EventStore.Tests.Common.Telemetry;
 
-internal sealed class XUnitLogger : ILogger
+public sealed class XUnitLogger : ILogger
 {
     private readonly ITestOutputHelper _testOutputHelper;
     private readonly string _categoryName;

@@ -1,6 +1,6 @@
 using DynamoDB.EventStore.SystemTests.Amazon;
-using DynamoDB.EventStore.SystemTests.TestDomain;
-using DynamoDB.EventStore.SystemTests.TestDomain.Commands;
+using DynamoDB.EventStore.Tests.Common.TestDomain;
+using DynamoDB.EventStore.Tests.Common.TestDomain.Commands;
 using FluentAssertions;
 using Xunit.Abstractions;
 
@@ -20,7 +20,7 @@ public class EventStore_Tests : TestSpecification
             .ConfigureAwait(false);
 
         var aggregate = new TestAggregate("Test");
-        await eventStore.LoadAsync(aggregate)
+        await eventStore.LoadAsync(aggregate, TimeoutToken)
             .ConfigureAwait(false);
 
         aggregate.Name.Should().BeNull();
@@ -41,12 +41,12 @@ public class EventStore_Tests : TestSpecification
 
         var uncommittedEvents = aggregate.UncommittedEvents.Select(stream => stream.ToArray()).ToArray();
 
-        await eventStore.SaveAsync(aggregate)
+        await eventStore.SaveAsync(aggregate, TimeoutToken)
             .ConfigureAwait(false);
 
         await client.AssertEventsAddedAsync(aggregate, config, uncommittedEvents, TimeoutToken)
             .ConfigureAwait(false);
-        await client.AssertSnapshotUpdatedAsync(aggregate, config)
+        await client.AssertSnapshotUpdatedAsync(aggregate, config, TimeoutToken)
             .ConfigureAwait(false);
     }
 
@@ -62,13 +62,13 @@ public class EventStore_Tests : TestSpecification
         var aggregate = new TestAggregate("Test", shouldCreateSnapshot: true);
         await aggregate.ChangeNameAsync(new ChangeName("This is a name"), TimeoutToken)
             .ConfigureAwait(false);
-        await eventStore.SaveAsync(aggregate)
+        await eventStore.SaveAsync(aggregate, TimeoutToken)
             .ConfigureAwait(false);
 
         await aggregate.ChangeNameAsync(new ChangeName("Name2"), TimeoutToken)
             .ConfigureAwait(false);
         aggregate.CreateSnapshot = false;
-        await eventStore.SaveAsync(aggregate)
+        await eventStore.SaveAsync(aggregate, TimeoutToken)
             .ConfigureAwait(false);
 
         aggregate = new TestAggregate("Test");

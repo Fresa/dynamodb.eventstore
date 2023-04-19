@@ -2,6 +2,7 @@ using Amazon;
 using Amazon.DynamoDBv2;
 using DynamoDB.EventStore.IntegrationTests.Amazon.DynamoDB;
 using DynamoDB.EventStore.IntegrationTests.Amazon.STS;
+using DynamoDB.EventStore.Tests.Common.Amazon;
 using Xunit.Abstractions;
 
 namespace DynamoDB.EventStore.IntegrationTests.Amazon;

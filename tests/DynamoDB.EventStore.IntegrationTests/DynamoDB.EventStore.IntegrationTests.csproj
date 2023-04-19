@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DynamoDB.EventStore\DynamoDB.EventStore.csproj" />
+    <ProjectReference Include="..\DynamoDB.EventStore.Tests.Common\DynamoDB.EventStore.Tests.Common.csproj" />
   </ItemGroup>
   
   <ItemGroup>
