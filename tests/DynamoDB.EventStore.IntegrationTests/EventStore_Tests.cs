@@ -50,7 +50,7 @@ public class EventStore_Tests : TestSpecification
                 .ConfigureAwait(false);
             updateRequests.Add(updateItemRequest);
 
-            return DynamoDbService.CreateEmptyResponse();
+            return DynamoDbService.CreateEmptyGetItemResponse();
         });
 
         using var client = AmazonServices.CreateDynamoDbClient();
@@ -73,6 +73,7 @@ public class EventStore_Tests : TestSpecification
         var updateSnapshotRequest = updateRequests[1];
         await updateSnapshotRequest.AssertSnapshotUpdatedAsync(aggregate, config)
             .ConfigureAwait(false);
+        aggregate.ReadCapacityUnitsSinceLastSnapshot.Should().Be(0);
     }
 
     [Fact]
@@ -106,5 +107,6 @@ public class EventStore_Tests : TestSpecification
         queryEventsRequest.AssertEventsQueried(aggregate, config, version);
 
         aggregate.Name.Should().Be("Name2");
+        aggregate.ReadCapacityUnitsSinceLastSnapshot.Should().BeGreaterThan(0);
     }
 }

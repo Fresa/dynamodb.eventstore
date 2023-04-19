@@ -2,9 +2,6 @@
 
 public abstract class Aggregate
 {
-    private const int ReadRequestUnit = 4096;
-    private const int WriteRequestUnit = 1024;
-
     protected Aggregate(string id)
     {
         Id = id;
@@ -16,13 +13,13 @@ public abstract class Aggregate
     protected int Version => VersionInternal;
     internal int VersionInternal { get; set; }
 
-    protected long BytesSinceLastSnapshot => BytesSinceLastSnapshotInternal;
-    internal long BytesSinceLastSnapshotInternal { get; set; }
+    protected double ReadCapacityUnitsSinceLastSnapshot => ReadCapacityUnitsSinceLastSnapshotInternal;
+    internal double ReadCapacityUnitsSinceLastSnapshotInternal { get; set; }
 
     protected abstract Task<MemoryStream> CreateSnapShotAsync(CancellationToken cancellationToken);
     internal Task<MemoryStream> CreateSnapShotInternalAsync(CancellationToken cancellationToken = default) => CreateSnapShotAsync(cancellationToken);
 
-    protected virtual bool ShouldCreateSnapshot => BytesSinceLastSnapshot > ReadRequestUnit * 3;
+    protected virtual bool ShouldCreateSnapshot => ReadCapacityUnitsSinceLastSnapshot > 3;
     internal bool ShouldCreateSnapshotInternal => ShouldCreateSnapshot;
 
     protected virtual bool ShouldReadSnapshots => true;

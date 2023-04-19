@@ -17,6 +17,7 @@ public sealed class TestAggregate : Aggregate
     public new int Version => base.Version;
     public new List<MemoryStream> UncommittedEvents => base.UncommittedEvents;
     public string? Name { get; private set; }
+    public new double ReadCapacityUnitsSinceLastSnapshot => base.ReadCapacityUnitsSinceLastSnapshot;
 
     public async Task ChangeNameAsync(ChangeName command, CancellationToken cancellationToken = default)
     {

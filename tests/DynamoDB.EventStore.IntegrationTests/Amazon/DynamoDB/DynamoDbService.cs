@@ -62,17 +62,22 @@ internal sealed class DynamoDbService : ObservableHttpClientHandler
 
     internal static OnRequestAsyncHandler ReturnEvents(string aggregateId, params IEvent[][] commits) => _ =>
     {
+        var items = commits.Select((commit, idx) => $$"""
+        {
+            "PK": { "S": "{{aggregateId}}" },
+            "SK": { "S": "{{idx + 1}}" },
+            "P": { "BS": [{{string.Join(", ", commit.Select(@event => $"\"{Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(@event))}\""))}}] }
+        }
+        """).ToList();
+        var totalItemSizes = items.Sum(item => item.Length * 8);
         var content = $$"""
                 {
+                    "ConsumedCapacity": { 
+                        "CapacityUnits": {{(int)Math.Ceiling((double) totalItemSizes / 4096)}}
+                    },
                     "Count": {{commits.Length}},
                     "Items": [
-                        {{string.Join(",", commits.Select((commit, idx) => $$"""
-                        {
-                            "PK": { "S": "{{aggregateId}}" },
-                            "SK": { "S": "{{idx + 1}}" },
-                            "P": { "BS": [{{string.Join(", ", commit.Select(@event => $"\"{Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(@event))}\""))}}] }
-                        }
-                        """))}}
+                        {{string.Join(",", items)}}
                     ]
                 }
                 """;
@@ -106,13 +111,24 @@ internal sealed class DynamoDbService : ObservableHttpClientHandler
         });
     };
 
-    internal static readonly OnRequestAsyncHandler ReturnEmptyGetItemResponse = _ => Task.FromResult(CreateEmptyResponse());
+    internal static readonly OnRequestAsyncHandler ReturnEmptyQueryResponse = _ => Task.FromResult(CreateEmptyQueryResponse());
 
-    internal static OnRequestAsyncHandler ReturnEmptyQueryResponse => ReturnEmptyGetItemResponse;
+    internal static HttpResponseMessage CreateEmptyQueryResponse() => new()
+    {
+        Content = new StringContent("""
+                {
+                    "ConsumedCapacity": { 
+                        "CapacityUnits": 1
+                    },
+                    "Attributes": {
+                        
+                    }
+                }
+                """)
+    };
 
-    internal static OnRequestAsyncHandler ReturnEmptyUpdateItemResponse => ReturnEmptyGetItemResponse;
-
-    internal static HttpResponseMessage CreateEmptyResponse() => new()
+    internal static readonly OnRequestAsyncHandler ReturnEmptyGetItemResponse = _ => Task.FromResult(CreateEmptyGetItemResponse());
+    internal static HttpResponseMessage CreateEmptyGetItemResponse() => new()
     {
         Content = new StringContent("""
                 {

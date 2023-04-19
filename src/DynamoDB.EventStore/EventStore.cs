@@ -59,6 +59,7 @@ public sealed class EventStore
             }
         }
 
+        aggregate.ReadCapacityUnitsSinceLastSnapshotInternal = 0;
         while (true)
         {
             var response = await _client.QueryAsync(new QueryRequest
@@ -70,16 +71,17 @@ public sealed class EventStore
                 {
                     [$":{TableKeys.PartitionKey}"] = new() { S = aggregate.IdInternal }
                 },
-                ExclusiveStartKey = exclusiveStartKey
+                ExclusiveStartKey = exclusiveStartKey,
+                ReturnConsumedCapacity = ReturnConsumedCapacity.TOTAL
             }, cancellationToken)
                 .ConfigureAwait(false);
-
+            
+            aggregate.ReadCapacityUnitsSinceLastSnapshotInternal += response.ConsumedCapacity.CapacityUnits;
             foreach (var payload in response.Items.Select(item => item[TableKeys.Payload]))
             {
                 await aggregate.LoadEventsInternalAsync(payload.BS, cancellationToken)
                     .ConfigureAwait(false);
                 aggregate.VersionInternal++;
-                aggregate.BytesSinceLastSnapshotInternal += payload.BS.Aggregate((long)0, (length, stream) => length + stream.Length);
             }
 
             if (!response.LastEvaluatedKey.Any())
@@ -158,6 +160,7 @@ public sealed class EventStore
                 }
             }, cancellationToken)
                 .ConfigureAwait(false);
+            aggregate.ReadCapacityUnitsSinceLastSnapshotInternal = 0;
         }
     }
 }

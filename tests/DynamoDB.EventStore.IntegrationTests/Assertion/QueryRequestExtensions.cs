@@ -1,3 +1,4 @@
+using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using DynamoDB.EventStore.Tests.Common.TestDomain;
 
@@ -10,6 +11,7 @@ internal static class QueryRequestExtensions
         request.Should().NotBeNull();
         request!.TableName.Should().Be(config.TableName);
         request.ConsistentRead.Should().Be(config.ConsistentRead);
+        request.ReturnConsumedCapacity.Should().Be(ReturnConsumedCapacity.TOTAL);
         request.KeyConditionExpression.Should().Be("PK = :PK");
         request.ExpressionAttributeValues.Should().HaveCount(1);
         var payloadExpression = request.ExpressionAttributeValues.Single();

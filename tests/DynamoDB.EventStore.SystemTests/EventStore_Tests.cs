@@ -48,6 +48,7 @@ public class EventStore_Tests : TestSpecification
             .ConfigureAwait(false);
         await client.AssertSnapshotUpdatedAsync(aggregate, config, TimeoutToken)
             .ConfigureAwait(false);
+        aggregate.ReadCapacityUnitsSinceLastSnapshot.Should().Be(0);
     }
 
     [Fact]
@@ -76,5 +77,6 @@ public class EventStore_Tests : TestSpecification
             .ConfigureAwait(false);
         
         aggregate.Name.Should().Be("Name2");
+        aggregate.ReadCapacityUnitsSinceLastSnapshot.Should().BeGreaterThan(0);
     }
 }

@@ -12,7 +12,8 @@ internal static class HttpContentJsonExtensions
         {
             new AttributeActionConverter(),
             new ReturnValueConverter(),
-            new MemoryStreamConverter()
+            new MemoryStreamConverter(),
+            new ReturnConsumedCapacityConverter()
         }
     });
     
