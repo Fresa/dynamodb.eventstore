@@ -9,7 +9,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamoDB.EventStore.Integra
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamoDB.EventStore.SystemTests", "tests\DynamoDB.EventStore.SystemTests\DynamoDB.EventStore.SystemTests.csproj", "{9DC2167F-D796-452F-853E-B7EE396371A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamoDB.EventStore.Tests.Common", "tests\DynamoDB.EventStore.Tests.Common\DynamoDB.EventStore.Tests.Common.csproj", "{B080BC5B-1D6A-40C1-882C-DFCB8297733C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamoDB.EventStore.Tests.Common", "tests\DynamoDB.EventStore.Tests.Common\DynamoDB.EventStore.Tests.Common.csproj", "{B080BC5B-1D6A-40C1-882C-DFCB8297733C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1D49FB9A-B213-47A1-B88B-DAB9BC1A4CC4}"
+	ProjectSection(SolutionItems) = preProject
+		.github\CODEOWNERS = .github\CODEOWNERS
+		.github\workflows\cd.yml = .github\workflows\cd.yml
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

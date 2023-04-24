@@ -1,13 +1,31 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<EmbedUntrackedSources>true</EmbedUntrackedSources>
+	<WarningsAsErrors>CS8600;CS8601;CS8603;CS8614;CS8618;CS8625</WarningsAsErrors>
+	<PackageReleaseNotes></PackageReleaseNotes>
+	<PublishRepositoryUrl>true</PublishRepositoryUrl>
+	<IncludeSymbols>true</IncludeSymbols>
+	<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+	<PackageVersion></PackageVersion>
+	<Authors>Fredrik Arvidsson</Authors>
+	<Company>FKAN Consulting AB</Company>
+	<PackageTags>dynamodb eventstore</PackageTags>
+	<Description>DynamoDB based event store</Description>
+	<RepositoryUrl>https://github.com/Fresa/dynamodb.eventstore</RepositoryUrl>
+	<PackageLicenseUrl>https://github.com/Fresa/dynamodb.eventstore/blob/master/LICENSE</PackageLicenseUrl>
+	<Copyright>Copyright © 2023 Fredrik Arvidsson</Copyright>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.101.49" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>
