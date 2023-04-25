@@ -33,9 +33,10 @@ public abstract class TestSpecification : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        _timeoutSource = new CancellationTokenSource(Timeout);
-        await _localStack.StartAsync(TimeoutToken)
+        using var startTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+        await _localStack.StartAsync(startTimeout.Token)
             .ConfigureAwait(false);
+        _timeoutSource = new CancellationTokenSource(Timeout);
     }
 
     public async Task DisposeAsync()
