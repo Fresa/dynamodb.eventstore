@@ -33,7 +33,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions: 
       contents: write
-      packages: write
     steps:
       - uses: actions/checkout@v3
         with:
@@ -69,9 +68,6 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: 7.0.x
-          source-url: https://nuget.pkg.github.com/Fresa/index.json
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Pack
         env:
           release_notes: ${{ steps.release_notes.outputs.release_notes }}
@@ -115,5 +111,8 @@ jobs:
         with:
           ref: v${{ steps.versioning.outputs.major-version }}.${{ steps.versioning.outputs.minor-version }}
           description: ${{ steps.release-tag.outputs.tag }}
-      - name: Publish to Github Packages
-        run: dotnet nuget push nuget-packages/${{ env.project_name }}.${{ steps.release-tag.outputs.version }}.nupkg 
+      - name: Publish to nuget.org
+        run: |
+          dotnet nuget push nuget-packages/${{ env.project_name }}.${{ steps.release-tag.outputs.version }}.nupkg \
+            --api-key ${{ secrets.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json
