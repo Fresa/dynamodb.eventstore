@@ -22,7 +22,7 @@ public sealed class EventStore
         internal const string Version = "V";
     }
 
-    private const string SnapshotItemType = "S";
+    private const string SnapshotItemSortKey = "0";
 
     public async Task LoadAsync(
         Aggregate aggregate,
@@ -38,7 +38,7 @@ public sealed class EventStore
                 Key = new Dictionary<string, AttributeValue>
                 {
                     [TableKeys.PartitionKey] = new() { S = aggregate.IdInternal },
-                    [TableKeys.SortKey] = new() { S = SnapshotItemType }
+                    [TableKeys.SortKey] = new() { N = SnapshotItemSortKey }
                 }
             }, cancellationToken)
                 .ConfigureAwait(false);
@@ -55,7 +55,7 @@ public sealed class EventStore
                 aggregate.VersionInternal = int.Parse(version);
 
                 exclusiveStartKey[TableKeys.PartitionKey] = new AttributeValue { S = aggregate.IdInternal };
-                exclusiveStartKey[TableKeys.SortKey] = new AttributeValue { S = version };
+                exclusiveStartKey[TableKeys.SortKey] = new AttributeValue { N = version };
             }
         }
 
@@ -108,7 +108,7 @@ public sealed class EventStore
             Key = new Dictionary<string, AttributeValue>
             {
                 [TableKeys.PartitionKey] = new() { S = aggregate.IdInternal },
-                [TableKeys.SortKey] = new() { S = $"{aggregate.VersionInternal}" }
+                [TableKeys.SortKey] = new() { N = $"{aggregate.VersionInternal}" }
             },
             ConditionExpression = commitConditionExpression,
             UpdateExpression = $"set {TableKeys.Payload} = :{TableKeys.Payload}",
@@ -139,7 +139,7 @@ public sealed class EventStore
                 Key = new Dictionary<string, AttributeValue>
                 {
                     [TableKeys.PartitionKey] = new() { S = aggregate.IdInternal },
-                    [TableKeys.SortKey] = new() { S = SnapshotItemType }
+                    [TableKeys.SortKey] = new() { N = SnapshotItemSortKey }
                 },
                 ConditionExpression = $"attribute_not_exists({TableKeys.Version}) OR {TableKeys.Version} < :{TableKeys.Version}",
                 UpdateExpression = $"""

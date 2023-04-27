@@ -20,7 +20,7 @@ internal static class DynamoDbClientExtensions
             AttributeDefinitions = new List<AttributeDefinition>()
             {
                 new("PK", ScalarAttributeType.S),
-                new("SK", ScalarAttributeType.S)
+                new("SK", ScalarAttributeType.N)
             },
             ProvisionedThroughput = new ProvisionedThroughput(1, 1)
         };
@@ -28,10 +28,10 @@ internal static class DynamoDbClientExtensions
             .ConfigureAwait(false);
     }
 
-    internal static async Task AssertEventsAddedAsync(this AmazonDynamoDBClient client, 
-        TestAggregate aggregate, 
-        EventStoreConfig config, 
-        byte[][] committedEvents, 
+    internal static async Task AssertEventsAddedAsync(this AmazonDynamoDBClient client,
+        TestAggregate aggregate,
+        EventStoreConfig config,
+        byte[][] committedEvents,
         CancellationToken cancellationToken = default)
     {
         var response = await client.GetItemAsync(new GetItemRequest
@@ -41,10 +41,13 @@ internal static class DynamoDbClientExtensions
             Key = new Dictionary<string, AttributeValue>
             {
                 ["PK"] = new(aggregate.Id),
-                ["SK"] = new(aggregate.Version.ToString())
+                ["SK"] = new()
+                {
+                    N = aggregate.Version.ToString()
+                }
             }
         }, cancellationToken);
-        
+
         var payload = response.Item["P"];
         payload.BS.Should().HaveCount(committedEvents.Length);
         for (var i = 0; i < response.Item["P"].BS.Count; i++)
@@ -53,9 +56,9 @@ internal static class DynamoDbClientExtensions
         }
     }
 
-    internal static async Task AssertSnapshotUpdatedAsync(this AmazonDynamoDBClient client, 
+    internal static async Task AssertSnapshotUpdatedAsync(this AmazonDynamoDBClient client,
         TestAggregate aggregate,
-        EventStoreConfig config, 
+        EventStoreConfig config,
         CancellationToken cancellationToken = default)
     {
         var response = await client.GetItemAsync(new GetItemRequest
@@ -65,10 +68,13 @@ internal static class DynamoDbClientExtensions
             Key = new Dictionary<string, AttributeValue>
             {
                 ["PK"] = new(aggregate.Id),
-                ["SK"] = new("S")
+                ["SK"] = new()
+                {
+                    N = "0"
+                }
             }
         }, cancellationToken);
-        
+
         var payload = response.Item["P"].B;
         var version = response.Item["V"].N;
         var snapshot = await aggregate.GetSnapShotAsync(cancellationToken)

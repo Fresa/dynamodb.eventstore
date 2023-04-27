@@ -23,7 +23,7 @@ internal static class QueryRequestExtensions
             request.ExclusiveStartKey.Should().ContainKey("PK")
                 .WhoseValue.S.Should().Be(aggregate.Id);
             request.ExclusiveStartKey.Should().ContainKey("SK")
-                .WhoseValue.S.Should().Be(version.ToString());
+                .WhoseValue.N.Should().Be(version.ToString());
         }
         else
         {

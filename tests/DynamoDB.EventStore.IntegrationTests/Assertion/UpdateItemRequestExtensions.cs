@@ -10,7 +10,7 @@ internal static class UpdateItemRequestExtensions
         request.Should().NotBeNull();
         request!.TableName.Should().Be(config.TableName);
         request.Key.Should().ContainKey("PK").WhoseValue.S.Should().Be(aggregate.Id);
-        request.Key.Should().ContainKey("SK").WhoseValue.S.Should().Be(aggregate.Version.ToString());
+        request.Key.Should().ContainKey("SK").WhoseValue.N.Should().Be(aggregate.Version.ToString());
         request.ConditionExpression.Should().Be("attribute_not_exists(PK)");
         request.UpdateExpression.Should().Be("set P = :P");
         request.ExpressionAttributeValues.Should().HaveCount(1);
@@ -29,7 +29,7 @@ internal static class UpdateItemRequestExtensions
         request.Should().NotBeNull();
         request!.TableName.Should().Be(config.TableName);
         request.Key.Should().ContainKey("PK").WhoseValue.S.Should().Be(aggregate.Id);
-        request.Key.Should().ContainKey("SK").WhoseValue.S.Should().Be("S");
+        request.Key.Should().ContainKey("SK").WhoseValue.N.Should().Be("0");
         request.ConditionExpression.Should().Be("attribute_not_exists(V) OR V < :V");
         request.UpdateExpression.Should().Be("""
                 set 
