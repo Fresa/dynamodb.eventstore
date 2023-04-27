@@ -65,7 +65,7 @@ internal sealed class DynamoDbService : ObservableHttpClientHandler
         var items = commits.Select((commit, idx) => $$"""
         {
             "PK": { "S": "{{aggregateId}}" },
-            "SK": { "S": "{{idx + 1}}" },
+            "SK": { "N": "{{idx + 1}}" },
             "P": { "BS": [{{string.Join(", ", commit.Select(@event => $"\"{Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(@event))}\""))}}] }
         }
         """).ToList();
@@ -96,7 +96,7 @@ internal sealed class DynamoDbService : ObservableHttpClientHandler
                 {
                     "Item": {
                         "PK": { "S": "{{aggregateId}}" },
-                        "SK": { "S": "S" },
+                        "SK": { "N": "0" },
                         "P": { "B": "{{Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(snapshot))}}" },
                         "V": { "N": "{{version}}" }
                     }
