@@ -10,7 +10,7 @@ internal static class GetItemRequestExtensions
         request.Should().NotBeNull();
         request!.TableName.Should().Be(config.TableName);
         request.ConsistentRead.Should().Be(config.ConsistentRead);
-        request.Key.Should().ContainKey("PK").WhoseValue.S.Should().Be(aggregate.Id);
-        request.Key.Should().ContainKey("SK").WhoseValue.N.Should().Be("0");
+        request.Key.Should().ContainKey(config.PartitionKeyName).WhoseValue.S.Should().Be(aggregate.Id);
+        request.Key.Should().ContainKey(config.SortKeyName).WhoseValue.N.Should().Be("0");
     }
 }

@@ -14,13 +14,13 @@ internal static class DynamoDbClientExtensions
             TableName = eventStoreConfig.TableName,
             KeySchema = new List<KeySchemaElement>
             {
-                new("PK", KeyType.HASH),
-                new("SK", KeyType.RANGE)
+                new(eventStoreConfig.PartitionKeyName, KeyType.HASH),
+                new(eventStoreConfig.SortKeyName, KeyType.RANGE)
             },
             AttributeDefinitions = new List<AttributeDefinition>()
             {
-                new("PK", ScalarAttributeType.S),
-                new("SK", ScalarAttributeType.N)
+                new(eventStoreConfig.PartitionKeyName, ScalarAttributeType.S),
+                new(eventStoreConfig.SortKeyName, ScalarAttributeType.N)
             },
             ProvisionedThroughput = new ProvisionedThroughput(1, 1)
         };
@@ -40,8 +40,8 @@ internal static class DynamoDbClientExtensions
             ConsistentRead = config.ConsistentRead,
             Key = new Dictionary<string, AttributeValue>
             {
-                ["PK"] = new(aggregate.Id),
-                ["SK"] = new()
+                [config.PartitionKeyName] = new(aggregate.Id),
+                [config.SortKeyName] = new()
                 {
                     N = aggregate.Version.ToString()
                 }
@@ -67,8 +67,8 @@ internal static class DynamoDbClientExtensions
             ConsistentRead = config.ConsistentRead,
             Key = new Dictionary<string, AttributeValue>
             {
-                ["PK"] = new(aggregate.Id),
-                ["SK"] = new()
+                [config.PartitionKeyName] = new(aggregate.Id),
+                [config.SortKeyName] = new()
                 {
                     N = "0"
                 }

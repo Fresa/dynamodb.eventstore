@@ -9,9 +9,9 @@ internal static class UpdateItemRequestExtensions
     {
         request.Should().NotBeNull();
         request!.TableName.Should().Be(config.TableName);
-        request.Key.Should().ContainKey("PK").WhoseValue.S.Should().Be(aggregate.Id);
-        request.Key.Should().ContainKey("SK").WhoseValue.N.Should().Be(aggregate.Version.ToString());
-        request.ConditionExpression.Should().Be("attribute_not_exists(PK)");
+        request.Key.Should().ContainKey(config.PartitionKeyName).WhoseValue.S.Should().Be(aggregate.Id);
+        request.Key.Should().ContainKey(config.SortKeyName).WhoseValue.N.Should().Be(aggregate.Version.ToString());
+        request.ConditionExpression.Should().Be($"attribute_not_exists({config.PartitionKeyName})");
         request.UpdateExpression.Should().Be("set P = :P");
         request.ExpressionAttributeValues.Should().HaveCount(1);
         var payloadExpression = request.ExpressionAttributeValues.Single();
@@ -28,8 +28,8 @@ internal static class UpdateItemRequestExtensions
     {
         request.Should().NotBeNull();
         request!.TableName.Should().Be(config.TableName);
-        request.Key.Should().ContainKey("PK").WhoseValue.S.Should().Be(aggregate.Id);
-        request.Key.Should().ContainKey("SK").WhoseValue.N.Should().Be("0");
+        request.Key.Should().ContainKey(config.PartitionKeyName).WhoseValue.S.Should().Be(aggregate.Id);
+        request.Key.Should().ContainKey(config.SortKeyName).WhoseValue.N.Should().Be("0");
         request.ConditionExpression.Should().Be("attribute_not_exists(V) OR V < :V");
         request.UpdateExpression.Should().Be("""
                 set 

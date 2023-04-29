@@ -13,6 +13,8 @@ dotnet add package DynamoDB.EventStore
 https://www.nuget.org/packages/DynamoDB.EventStore/
 
 ## Getting Started
+Create the DynamoDB table according to how you [configure the event store](src/DynamoDB.EventStore/EventStoreConfig.cs). A programatic example can be found [here](tests/DynamoDB.EventStore.SystemTests/Amazon/DynamoDbClientExtensions.cs). Make sure to give the DynamoDB client enough [permissions](https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazondynamodb.html#amazondynamodb-actions-as-permissions). The event store uses the [GetItem](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_GetItem.html), [UpdateItem](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_UpdateItem.html) and [Query](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Query.html) actions.
+
 The following is a minimal example on how to integrate with the event store.
 ```c#
 using Amazon.DynamoDBv2;

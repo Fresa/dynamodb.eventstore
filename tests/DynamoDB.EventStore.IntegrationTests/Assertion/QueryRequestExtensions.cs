@@ -12,17 +12,17 @@ internal static class QueryRequestExtensions
         request!.TableName.Should().Be(config.TableName);
         request.ConsistentRead.Should().Be(config.ConsistentRead);
         request.ReturnConsumedCapacity.Should().Be(ReturnConsumedCapacity.TOTAL);
-        request.KeyConditionExpression.Should().Be("PK = :PK");
+        request.KeyConditionExpression.Should().Be($"{config.PartitionKeyName} = :{config.PartitionKeyName}");
         request.ExpressionAttributeValues.Should().HaveCount(1);
         var payloadExpression = request.ExpressionAttributeValues.Single();
-        payloadExpression.Key.Should().Be(":PK");
+        payloadExpression.Key.Should().Be($":{config.PartitionKeyName}");
         payloadExpression.Value.S.Should().Be(aggregate.Id);
         if (version != null)
         {
             request.ExclusiveStartKey.Should().HaveCount(2);
-            request.ExclusiveStartKey.Should().ContainKey("PK")
+            request.ExclusiveStartKey.Should().ContainKey(config.PartitionKeyName)
                 .WhoseValue.S.Should().Be(aggregate.Id);
-            request.ExclusiveStartKey.Should().ContainKey("SK")
+            request.ExclusiveStartKey.Should().ContainKey(config.SortKeyName)
                 .WhoseValue.N.Should().Be(version.ToString());
         }
         else
